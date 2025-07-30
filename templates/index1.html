@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Document Analysis</title>
+
+    <!-- anime.js CDN for animations -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+
+    <style>
+        /* Base reset and font */
+        body {
+            font-family: Arial, sans-serif;
+            background:
+                url('https://www.transparenttextures.com/patterns/asfalt-light.png'), /* subtle textured background */
+                #000000;
+            color: #C3D900;
+            margin: 0;
+            padding: 0;
+            overflow-x: hidden;
+        }
+
+        header {
+            background-color: rgba(0, 0, 0, 0.4);
+            color: #C3D900;
+            padding: 15px 20px;
+            font-size: 30px;
+            text-align: center;
+            position: relative;
+            /* Text shadow for subtle glow */
+            text-shadow: 0 0 8px #a3cf00;
+            user-select: none;
+        }
+
+        .hamburger {
+            position: absolute;
+            left: 20px;
+            top: 18px;
+            font-size: 30px;
+            cursor: pointer;
+            color: #c3d900;
+            filter: drop-shadow(0 0 6px #a1cc00);
+            user-select: none;
+            transition: transform 0.3s ease;
+        }
+        .hamburger:hover {
+            transform: scale(1.1);
+        }
+
+        .container {
+            padding: 20px;
+            max-width: 800px;
+            margin: 30px auto;
+            background-color: rgba(47, 47, 47, 0.85);
+            border-radius: 12px;
+            box-shadow: 0 0 20px #c3d900cc;
+            color: #C3D900;
+        }
+
+        form {
+            background-color: #2f2f2f;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px #a3cf007f;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        input[type="file"] {
+            background: linear-gradient(145deg, #bdd85b, #d9fa61);
+            border-radius: 9px;
+            border: none;
+            padding: 16px 33px;
+            font-family: inherit;
+            font-size: 16px;
+            cursor: pointer;
+            color: #000080;
+            transition: box-shadow 0.4s ease, transform 0.2s ease;
+            display: inline-block;
+        }
+        input[type="file"]:hover {
+            box-shadow: 0 0 30px #c3d900;
+            transform: scale(1.05);
+        }
+        input[type="file"]:active {
+            transform: scale(0.97);
+            box-shadow: 0 0 15px #a5c700;
+        }
+
+        button {
+            background: linear-gradient(145deg, #c3d900, #a0d12e);
+            border-radius: 9px;
+            border: none;
+            font-family: inherit;
+            font-size: 16px;
+            cursor: pointer;
+            padding: 16px 33px;
+            color: #000080;
+            transition: box-shadow 0.4s ease, transform 0.2s ease;
+            margin-left: 10px;
+            display: inline-block;
+        }
+        button:hover {
+            box-shadow: 7px 5px 56px -14px #c3d900;
+            transform: scale(1.05);
+        }
+        button:active {
+            transform: scale(0.97);
+            box-shadow: 7px 5px 56px -10px #c3d900;
+        }
+
+        .result-container {
+            background-color: #2f2f2f;
+            color: #c3d900;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px #a3cf0099;
+            padding: 30px;
+            margin-top: 20px;
+            opacity: 0; /* start hidden for animation */
+            transform: translateY(30px);
+        }
+
+        .result-container.visible {
+            animation: fadeSlideIn 0.8s forwards ease-out;
+        }
+
+        @keyframes fadeSlideIn {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .result-section {
+            margin-bottom: 30px;
+        }
+
+        .result-section strong {
+            color: #d5f365;
+            font-size: 20px;
+            display: block;
+            margin-bottom: 10px;
+            text-shadow: 0 0 5px #a3cf00;
+        }
+
+        .result-section span {
+            font-size: 18px;
+            line-height: 1.6;
+            color: #C3D900;
+        }
+
+        ul#plagiarized-sites {
+            padding-left: 20px;
+            list-style-type: none;
+            margin: 0;
+            max-height: 250px;
+            overflow-y: auto;
+            border: 1px solid #444;
+            border-radius: 6px;
+        }
+
+        ul#plagiarized-sites li {
+            padding: 10px 0;
+            border-bottom: 1px solid #444;
+            font-size: 16px;
+            color: #C3D900;
+            transition: background-color 0.3s ease;
+        }
+
+        ul#plagiarized-sites li:hover {
+            background-color: #3a3a3a;
+        }
+
+        ul#plagiarized-sites li a {
+            color: #d5f365;
+            text-decoration: none;
+        }
+
+        ul#plagiarized-sites li a:hover {
+            text-decoration: underline;
+        }
+
+        .pagination-controls {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .pagination-controls button {
+            padding: 10px 20px;
+            margin: 0 5px;
+            border: none;
+            background-color: #d5f365;
+            color: #000080;
+            font-size: 16px;
+            cursor: pointer;
+            border-radius: 5px;
+            transition: background-color 0.3s, transform 0.2s ease;
+            user-select: none;
+        }
+
+        .pagination-controls button:hover {
+            background-color: #C3D900;
+            color: #000;
+            transform: scale(1.05);
+        }
+
+        .pagination-controls button:disabled {
+            background-color: #555;
+            cursor: not-allowed;
+            color: #222;
+            transform: none;
+        }
+
+        #page-info {
+            color: #c3d900;
+            font-size: 16px;
+            display: inline-block;
+            margin-left: 10px;
+            user-select: none;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            height: 100%;
+            width: 0;
+            position: fixed;
+            top: 0;
+            left: 0;
+            background-color: #111;
+            overflow-x: hidden;
+            transition: width 0.5s ease;
+            padding-top: 60px;
+            box-shadow: 2px 0 20px #8dab00aa;
+            z-index: 20;
+        }
+
+        .sidebar a {
+            padding: 16px 20px;
+            text-decoration: none;
+            font-size: 20px;
+            color: #C3D900;
+            display: block;
+            transition: background-color 0.3s ease, color 0.3s ease;
+            user-select: none;
+        }
+
+        .sidebar a:hover {
+            background-color: #575757;
+            color: #d5f365;
+            text-shadow: 0 0 6px #c3d900;
+        }
+
+        .sidebar .close-btn {
+            position: absolute;
+            top: 0;
+            right: 25px;
+            font-size: 36px;
+            cursor: pointer;
+            color: #C3D900;
+            filter: drop-shadow(0 0 5px #a4cc00);
+            user-select: none;
+        }
+
+        /* About Us section */
+        #about-us {
+            margin-top: 20px;
+            color: #C3D900;
+            line-height: 1.5;
+        }
+
+        #about-us h2 {
+            color: #d5f365;
+            text-shadow: 0 0 8px #a3cf00;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="hamburger" onclick="toggleSidebar()">☰</div>
+        Document Analysis
+    </header>
+
+    <div class="sidebar" id="sidebar">
+        <a href="javascript:void(0)" class="close-btn" onclick="closeSidebar()">×</a>
+        <a href="#upload">Upload PDF</a>
+        <a href="#about-us">About Us</a>
+        <a href="#contact">Contact</a>
+    </div>
+
+    <div class="container">
+        <form id="upload-form" action="/upload" method="post" enctype="multipart/form-data">
+            <input type="file" name="file" accept=".pdf" required />
+            <button type="submit">Upload PDF</button>
+        </form>
+
+        <div class="result-container" id="result-container" aria-live="polite" aria-atomic="true" style="display:none;">
+            <div id="result-section" class="result-section">
+                <strong>Plagiarism Score:</strong>
+                <span id="plagiarism-score">0%</span>
+                <div>
+                    <strong>Plagiarized Sites:</strong>
+                    <ul id="plagiarized-sites"></ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="pagination-controls" id="pagination-controls" style="display:none;">
+            <button id="prev-page" onclick="changePage(-1)">Previous</button>
+            <button id="next-page" onclick="changePage(1)">Next</button>
+            <div id="page-info"></div>
+        </div>
+
+        <div id="about-us">
+            <h2>About Us</h2>
+            <p>We are committed to providing the best document analysis services. Our tools help you analyze your documents efficiently and effectively.</p>
+            <ul>
+                <li>High-quality analysis</li>
+                <li>Easy to use</li>
+                <li>24/7 support</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        let matches = [];
+        let currentPage = 1;
+        const resultsPerPage = 3;
+
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            sidebar.style.width = sidebar.style.width === '250px' ? '0' : '250px';
+        }
+
+        function closeSidebar() {
+            document.getElementById('sidebar').style.width = '0';
+        }
+
+        // Animate showing result container
+        function showResultContainer() {
+            const container = document.getElementById('result-container');
+            const pagination = document.getElementById('pagination-controls');
+            container.style.display = 'block';
+            pagination.style.display = matches.length > resultsPerPage ? 'block' : 'none';
+
+            // Add animation classes
+            container.classList.add('visible');
+        }
+
+        document.getElementById('upload-form').onsubmit = function(event) {
+            event.preventDefault();
+            var formData = new FormData(this);
+            fetch('/upload', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                matches = data.matches || [];
+                currentPage = 1;
+                document.getElementById('plagiarism-score').textContent = `${data.plagiarism_score}%`;
+                displayResults();
+                showResultContainer();
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Failed to upload or analyze document.');
+            });
+        };
+
+        function displayResults() {
+            const resultsList = document.getElementById('plagiarized-sites');
+            resultsList.innerHTML = '';
+
+            const startIndex = (currentPage - 1) * resultsPerPage;
+            const endIndex = Math.min(startIndex + resultsPerPage, matches.length);
+            const paginated = matches.slice(startIndex, endIndex);
+
+            paginated.forEach(match => {
+                const li = document.createElement('li');
+                li.innerHTML = `<a href="${match.matched_url}" target="_blank" rel="noopener noreferrer">${match.matched_url}</a> - Similarity Score: ${match.similarity_score.toFixed(2)}%`;
+                resultsList.appendChild(li);
+            });
+
+            // Pagination buttons visibility
+            document.getElementById('prev-page').disabled = currentPage <= 1;
+            document.getElementById('next-page').disabled = endIndex >= matches.length;
+
+            // Page info
+            document.getElementById('page-info').innerText = `Page ${currentPage} of ${Math.ceil(matches.length / resultsPerPage)}`;
+        }
+
+        function changePage(direction) {
+            const totalPages = Math.ceil(matches.length / resultsPerPage);
+            currentPage = Math.min(Math.max(1, currentPage + direction), totalPages);
+            displayResults();
+
+            // Animate result container on page change
+            anime({
+                targets: '#result-container',
+                opacity: [0, 1],
+                translateY: [20, 0],
+                easing: 'easeOutExpo',
+                duration: 600
+            });
+        }
+    </script>
+</body>
+</html>

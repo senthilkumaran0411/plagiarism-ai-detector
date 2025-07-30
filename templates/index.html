@@ -1,0 +1,696 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>True-Source - Plagiarism Checker</title>
+
+    <!-- Google Fonts - Optional: Poppins for modern look -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet" />
+
+    <!-- anime.js CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+
+    <style>
+        /* Reset & base */
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', Arial, sans-serif;
+            background:
+                url('https://www.transparenttextures.com/patterns/cubes.png'), /* subtle repeating cubes */
+                linear-gradient(135deg, #121212, #2c3e50);
+            color: #eee;
+            margin: 0;
+            padding: 0;
+            overflow-y: auto;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        header {
+            background: rgba(40, 45, 65, 0.9);
+            color: #AED581;
+            padding: 20px 40px;
+            font-size: 50px;
+            text-align: center;
+            position: relative;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.7);
+            user-select: none;
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 3rem;
+            filter: drop-shadow(0 0 5px #AED581);
+            font-weight: 700;
+        }
+
+        header h2 {
+            margin-top: 4px;
+            font-weight: 400;
+            font-size: 1.25rem;
+            color: #c3d900;
+            filter: drop-shadow(0 0 3px #a4cc00);
+        }
+
+        /* Hamburger */
+        .hamburger {
+            font-size: 30px;
+            cursor: pointer;
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            z-index: 20;
+            color: #aed581;
+            filter: drop-shadow(0 0 7px #a2ff3f);
+            user-select: none;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            height: 100%;
+            width: 0;
+            position: fixed;
+            top: 0;
+            left: 0;
+            background-color: #111;
+            overflow-x: hidden;
+            transition: 0.5s;
+            padding-top: 60px;
+            z-index: 15;
+            box-shadow: 2px 0 10px rgba(162, 255, 63, 0.8);
+            font-size: 1.1rem;
+            color: #c3d900;
+        }
+
+        .sidebar a {
+            padding: 12px 20px;
+            text-decoration: none;
+            font-size: 20px;
+            color: #c3d900;
+            display: block;
+            transition: 0.3s;
+        }
+
+        .sidebar a:hover {
+            background-color: #575757;
+            color: #e5fc5e;
+            text-shadow: 0 0 5px #c3d900;
+        }
+
+        .sidebar .close-btn {
+            position: absolute;
+            top: 0;
+            right: 25px;
+            font-size: 36px;
+            cursor: pointer;
+            color: #c3d900;
+            user-select: none;
+        }
+
+        /* Navigation buttons in header */
+        .nav-buttons {
+            margin-top: 20px;
+        }
+
+        .nav-buttons button {
+            background: linear-gradient(145deg, #aed581, #7dbd3a);
+            border: none;
+            font-weight: 600;
+            box-shadow: 6px 6px 12px #639f02, -6px -6px 12px #cef67a;
+            color: #1b2e05;
+            padding: 12px 24px;
+            margin: 0 10px;
+            border-radius: 15px;
+            transition: all 0.4s ease;
+            cursor: pointer;
+            user-select: none;
+            font-size: 1rem;
+        }
+
+        .nav-buttons button.active {
+            background: linear-gradient(145deg, #7dbd3a, #aed581);
+            box-shadow: inset 6px 6px 12px #639f02, inset -6px -6px 12px #cef67a;
+            color: #122101;
+        }
+
+        .nav-buttons button:hover {
+            background: linear-gradient(145deg, #7dbd3a, #aed581);
+            box-shadow: inset 6px 6px 12px #639f02, inset -6px -6px 12px #cef67a;
+            color: #122101;
+            transform: scale(1.05);
+        }
+
+        .nav-buttons button:active {
+            transform: scale(0.95);
+            box-shadow: inset 3px 3px 8px #7dbd3a, inset -3px -3px 8px #e5fc5e;
+        }
+
+        /* Container style for forms and results */
+        .container {
+            max-width: 900px;
+            margin: 30px auto 60px;
+            padding: 30px;
+            background: rgba(31, 38, 50, 0.85);
+            border-radius: 20px;
+            box-shadow: inset 5px 5px 15px #1a2240, inset -5px -5px 15px #475569;
+            color: #c3d900;
+            user-select: text;
+        }
+
+        /* Forms */
+        form {
+            margin-bottom: 10px;
+        }
+
+        textarea {
+            width: 100%;
+            background: linear-gradient(145deg, #2c3e50, #23304a);
+            border: 1px solid #789262;
+            color: #c3d900;
+            font-size: 1.1rem;
+            border-radius: 15px;
+            padding: 15px;
+            box-shadow: inset 5px 5px 15px #1a2240, inset -5px -5px 15px #475569;
+            transition: background 0.5s, box-shadow 0.3s;
+            resize: vertical;
+            min-height: 180px;
+            font-family: 'Poppins', Arial, sans-serif;
+        }
+
+        textarea::placeholder {
+            color: #aebc7a;
+        }
+
+        textarea:focus {
+            outline: none;
+            background: linear-gradient(145deg, #3c5e10, #2e4709);
+            box-shadow: 0 0 15px #a0d12e;
+            color: #e5fc5e;
+        }
+
+        /* Buttons */
+        input[type="submit"], #new-app, #download-report-btn {
+            background: linear-gradient(145deg, #c3d900, #a0d12e);
+            border-radius: 30px;
+            font-weight: 700;
+            border: none;
+            color: #1b2e05;
+            padding: 15px 40px;
+            box-shadow: 6px 6px 15px #7dbd3a, -6px -6px 15px #e5fc5e;
+            cursor: pointer;
+            transition: all 0.4s ease;
+            font-size: 1.2rem;
+            user-select: none;
+            margin-right: 10px;
+        }
+
+        input[type="submit"]:hover, #new-app:hover, #download-report-btn:hover {
+            background: linear-gradient(145deg, #a0d12e, #c3d900);
+            box-shadow: inset 6px 6px 15px #7dbd3a, inset -6px -6px 15px #e5fc5e;
+            color: #122101;
+            transform: scale(1.05);
+        }
+
+        input[type="submit"]:active, #new-app:active, #download-report-btn:active {
+            transform: scale(0.95);
+            box-shadow: inset 3px 3px 8px #7dbd3a, inset -3px -3px 8px #e5fc5e;
+        }
+
+        /* Result container */
+        .result-container {
+            background: rgba(40, 45, 65, 0.9);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 8px 20px rgba(162, 255, 63, 0.6);
+            overflow-y: auto;
+            max-height: 80vh;
+        }
+
+        .result-section {
+            margin-bottom: 30px;
+            border-bottom: 1px solid #444;
+            padding-bottom: 20px;
+        }
+
+        .result-section strong {
+            color: #c3d900;
+            font-size: 24px;
+            margin-bottom: 15px;
+            display: block;
+        }
+
+        .result-section span {
+            font-size: 18px;
+            line-height: 1.7;
+            color: #d4e157;
+        }
+
+        ul#plagiarized-sites {
+            padding-left: 20px;
+            margin: 0;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        ul#plagiarized-sites li {
+            padding: 12px 0;
+            border-bottom: 1px solid #555;
+            font-size: 16px;
+            color: #c3d900;
+        }
+
+        ul#plagiarized-sites a {
+            color: #d4e157;
+            text-decoration: none;
+            transition: color 0.3s;
+            display: inline-block;
+            max-width: 80vw;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        ul#plagiarized-sites a:hover {
+            color: #aed581;
+            text-decoration: underline;
+        }
+
+        /* Highlight for plagiarized parts */
+        .highlight {
+            background: radial-gradient(circle, #d4e15788, transparent);
+            padding: 0 4px;
+            border-radius: 4px;
+        }
+
+        /* Pagination Controls */
+        .pagination-controls {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .pagination-controls button {
+            padding: 10px 20px;
+            margin: 0 5px;
+            border: none;
+            background-color: #d5f365;
+            color: #000080;
+            font-size: 16px;
+            cursor: pointer;
+            border-radius: 5px;
+            transition: background-color 0.3s;
+            user-select: none;
+        }
+
+        .pagination-controls button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+
+        .pagination-controls button:hover:not(:disabled) {
+            background-color: #c3d900;
+            color: #000;
+        }
+
+        #page-info {
+            font-size: 16px;
+            color: #c3d900;
+            user-select: none;
+        }
+
+        /* About us styles */
+        #about-us {
+            background-color: transparent;
+            color: #c3d900;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-top: 20px;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        #about-us h2 {
+            margin-top: 0;
+            font-size: 28px;
+            color: #d5f365;
+        }
+
+        #about-us p, #about-us ul li {
+            font-size: 18px;
+            line-height: 1.6;
+            color: #c3d900;
+        }
+
+        #about-us ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        #about-us ul li::before {
+            content: '•';
+            color: #d5f365;
+            padding-right: 10px;
+        }
+
+        /* Utility hidden */
+        .hidden {
+            display: none;
+        }
+
+        /* Links */
+        a.site-link {
+            color: #d5f365;
+            text-decoration: none;
+        }
+
+        a.site-link:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <span class="hamburger" onclick="toggleSidebar()">&#9776;</span>
+        <h1>True-Source</h1>
+        <h2>A Plagiarism Checker</h2>
+
+        <!-- Navigation Buttons -->
+        <div class="nav-buttons">
+            <button onclick="showSection('plagiarism-checker')" class="active">Plagiarism Checker</button>
+            <button onclick="showSection('ai-checker')">AI Content Checker</button>
+            <button onclick="showSection('about-us')">About Us</button>
+        </div>
+    </header>
+
+    <!-- Sidebar -->
+    <div id="sidebar" class="sidebar">
+        <a href="javascript:void(0)" class="close-btn" onclick="toggleSidebar()">&times;</a>
+        <a href="#" onclick="showSection('plagiarism-checker')">Plagiarism Checker</a>
+        <a href="#" onclick="showSection('ai-checker')">AI Content Checker</a>
+        <a href="#" onclick="showSection('about-us')">About Us</a>
+    </div>
+
+    <!-- Plagiarism Checker Form -->
+    <div id="plagiarism-checker" class="container">
+        <form id="plagiarism-form" onsubmit="return checkPlagiarism(event)">
+            <textarea name="originalContent" id="originalContent" rows="10" placeholder="Paste assignment text here..."></textarea><br /><br />
+            <input type="submit" value="Check for Plagiarism" />
+            <button id="new-app" type="button" onclick="window.location.href='/open_pdf_app'">UPLOAD PDF</button>
+        </form>
+
+        <!-- Result Container -->
+        <div id="result-container" class="result-container hidden" style="opacity: 0;">
+            <div class="result-section">
+                <strong>Content Topic:</strong> <span id="content-topic"></span>
+            </div>
+            <div class="result-section">
+                <strong>Sites Plagiarized From:</strong>
+                <ul id="plagiarized-sites"></ul>
+                <div id="pagination-controls" class="pagination-controls hidden">
+                    <button id="prev-page" onclick="changePage(-1)">Previous</button>
+                    <span id="page-info"></span>
+                    <button id="next-page" onclick="changePage(1)">Next</button>
+                </div>
+            </div>
+            <div class="result-section">
+                <center><strong style="font-size:20px">Plagiarism Level:</strong> <span id="plagiarism-level"></span></center>
+            </div>
+            <button id="download-report-btn" onclick="downloadPDF()">Download Report PDF</button>
+        </div>
+    </div>
+
+    <!-- AI Content Checker Form -->
+    <div id="ai-checker" class="container hidden">
+        <form id="ai-form" onsubmit="return checkAIContent(event)">
+            <textarea name="content" id="aiContent" rows="10" placeholder="Paste content here..."></textarea><br /><br />
+            <input type="submit" value="Check for AI Content" />
+            <button id="new-app" type="button" onclick="window.location.href='/open_pdf_app'">UPLOAD PDF</button>
+        </form>
+
+        <!-- Result Container -->
+        <div id="ai-result-container" class="result-container hidden" style="opacity: 0;">
+            <div class="result-section">
+                <strong>AI Content Detection Result:</strong>
+                <span id="ai-detection-result"></span>
+            </div>
+        </div>
+    </div>
+
+    <!-- About Us Section -->
+    <div id="about-us" class="container hidden">
+        <h2>About Us</h2>
+        <p>Welcome to True-Source, your reliable tool for detecting plagiarism and AI-generated content. Our mission is to provide an easy-to-use platform that ensures the authenticity and originality of your content.</p>
+        <p>Our tool offers:</p>
+        <ul>
+            <li>Advanced plagiarism detection from various sources.</li>
+            <li>AI content analysis to identify machine-generated text.</li>
+            <li>User-friendly interface and accurate results.</li>
+        </ul>
+        <p>For any inquiries, please contact us at <a href="mailto:info@true-source.com" style="color:#aed581;">info@true-source.com</a>.</p>
+    </div>
+
+    <!-- html2pdf Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.9.2/html2pdf.bundle.min.js"></script>
+
+    <script>
+        let matches = [];
+        let currentPage = 1;
+        const resultsPerPage = 3;
+
+        // Toggle Sidebar visibility
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            sidebar.style.width = sidebar.style.width === '250px' ? '0' : '250px';
+        }
+
+        // Show selected section, hide others, set active button
+        function showSection(sectionId) {
+            const sections = ['plagiarism-checker', 'ai-checker', 'about-us'];
+            sections.forEach(id => {
+                document.getElementById(id).classList.add('hidden');
+                // Hide result containers & reset opacity
+                if (id === 'plagiarism-checker') {
+                    document.getElementById('result-container').classList.add('hidden');
+                    document.getElementById('result-container').style.opacity = 0;
+                } else if (id === 'ai-checker') {
+                    document.getElementById('ai-result-container').classList.add('hidden');
+                    document.getElementById('ai-result-container').style.opacity = 0;
+                }
+            });
+
+            const buttons = document.querySelectorAll('.nav-buttons button');
+            buttons.forEach(button => {
+                button.classList.remove('active');
+            });
+
+            document.getElementById(sectionId).classList.remove('hidden');
+
+            const activeButton = document.querySelector(`.nav-buttons button[onclick="showSection('${sectionId}')"]`);
+            if (activeButton) {
+                activeButton.classList.add('active');
+            }
+
+            toggleSidebar();
+        }
+
+        // Pagination display update
+        function displayResults() {
+            const resultsList = document.getElementById('plagiarized-sites');
+            resultsList.innerHTML = '';
+
+            // Slice results for current page
+            const startIndex = (currentPage - 1) * resultsPerPage;
+            const endIndex = Math.min(startIndex + resultsPerPage, matches.length);
+            const paginatedMatches = matches.slice(startIndex, endIndex);
+
+            paginatedMatches.forEach(match => {
+                const listItem = document.createElement('li');
+                listItem.innerHTML = `<a href="${match.matched_url}" target="_blank" rel="noopener noreferrer">${match.matched_url}</a> - Similarity Score: ${match.similarity_score.toFixed(2)}%`;
+                resultsList.appendChild(listItem);
+            });
+
+            // Update pagination controls
+            const prevBtn = document.getElementById('prev-page');
+            const nextBtn = document.getElementById('next-page');
+            const pageInfo = document.getElementById('page-info');
+
+            prevBtn.style.display = currentPage > 1 ? 'inline-block' : 'none';
+            nextBtn.style.display = endIndex < matches.length ? 'inline-block' : 'none';
+
+            pageInfo.innerText = `Page ${currentPage} of ${Math.ceil(matches.length / resultsPerPage)}`;
+            document.getElementById('pagination-controls').style.display = matches.length > resultsPerPage ? 'block' : 'none';
+        }
+
+        function changePage(direction) {
+            const totalPages = Math.ceil(matches.length / resultsPerPage);
+            currentPage = Math.max(1, Math.min(totalPages, currentPage + direction));
+            displayResults();
+        }
+
+
+        // Check Plagiarism form submit
+        function checkPlagiarism(event) {
+            event.preventDefault();
+
+            const form = document.getElementById('plagiarism-form');
+            const formData = new FormData(form);
+
+            fetch('/api/check_plagiarism', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                matches = data.matches || [];
+
+                document.getElementById('content-topic').innerText = "Assignment"; 
+                document.getElementById('plagiarism-level').innerText = data.plagiarism_score ? data.plagiarism_score.toFixed(2) : "0";
+
+                currentPage = 1;
+                displayResults();
+
+                const resultContainer = document.getElementById('result-container');
+                resultContainer.classList.remove('hidden');
+                anime({
+                    targets: resultContainer,
+                    opacity: [0, 1],
+                    translateY: [30, 0],
+                    easing: 'easeOutExpo',
+                    duration: 800
+                });
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Failed to check plagiarism. Please try again later.');
+            });
+
+            return false;
+        }
+
+        // Check AI Content form submit
+        function checkAIContent(event) {
+            event.preventDefault();
+
+            const form = document.getElementById('ai-form');
+            const formData = new FormData(form);
+
+            fetch('/api/check_ai_content', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                const resultText = data.ai_written ? 'This content is AI-generated.' : 'This content appears to be human-written.';
+                const aiResult = document.getElementById('ai-detection-result');
+                aiResult.innerText = resultText;
+
+                const aiContainer = document.getElementById('ai-result-container');
+                aiContainer.classList.remove('hidden');
+
+                anime({
+                    targets: aiContainer,
+                    opacity: [0, 1],
+                    translateY: [30, 0],
+                    easing: 'easeOutExpo',
+                    duration: 800
+                });
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Failed to check AI content. Please try again later.');
+            });
+
+            return false;
+        }
+
+        // Download plagiarism report as PDF
+        function downloadPDF() {
+            const originalContent = document.getElementById('originalContent').value;
+
+            // Create a container div to highlight plagiarized sentences
+            const tempDiv = document.createElement('div');
+            tempDiv.textContent = originalContent;
+
+            // Create a copy of originalContent with highlighted matches
+            let highlightedContent = originalContent;
+
+            matches.forEach((match, index) => {
+                // Escape special characters for regex
+                const escapedSentence = match.sentence.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
+                const regex = new RegExp(escapedSentence, 'g');
+
+                // Replace with highlighted text and footnote number
+                highlightedContent = highlightedContent.replace(regex, `<span class="highlight">${match.sentence}</span><sup>${index + 1}</sup>`);
+            });
+
+            // Compose the report HTML content
+            let reportContent = `<h1>Plagiarism Report</h1>`;
+            reportContent += `<div style="font-family: 'Poppins', Arial, sans-serif;">${highlightedContent.replace(/\n/g, '<br>')}</div><br/>`;
+            reportContent += `<h2>Plagiarized Content Table</h2>`;
+            reportContent += `
+                <table border="1" cellspacing="0" cellpadding="5" style="width: 100%; table-layout: fixed; font-family: Arial, sans-serif;">
+                    <thead style="background-color: #d5f365; color: #000080;">
+                        <tr>
+                            <th style="width: 40%;">Sentence</th>
+                            <th style="width: 40%;">Matched URL</th>
+                            <th style="width: 20%;">Similarity Score</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+
+            matches.forEach(match => {
+                reportContent += `
+                    <tr>
+                        <td style="word-wrap: break-word;">${match.sentence}</td>
+                        <td style="word-wrap: break-word;"><a href="${match.matched_url}" target="_blank">${match.matched_url}</a></td>
+                        <td style="word-wrap: break-word;">${match.similarity_score.toFixed(2)}%</td>
+                    </tr>
+                `;
+            });
+
+            reportContent += `</tbody></table>`;
+
+            const opt = {
+                margin: 0.5,
+                filename: 'plagiarism_report.pdf',
+                html2canvas: { scale: 2 },
+                jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
+            };
+
+            html2pdf().from(reportContent).set(opt).save().then(() => {
+                alert('PDF Report downloaded!');
+            });
+        }
+
+        // Initial page setup
+        document.addEventListener('DOMContentLoaded', () => {
+            // Show plagiarism checker section by default
+            showSection('plagiarism-checker');
+
+            // Animate header & nav buttons on load
+            anime.timeline()
+                .add({
+                    targets: 'header h1',
+                    opacity: [0, 1],
+                    translateY: [-20, 0],
+                    easing: 'easeOutExpo',
+                    duration: 900
+                })
+                .add({
+                    targets: '.nav-buttons button',
+                    opacity: [0, 1],
+                    translateX: [-30, 0],
+                    delay: anime.stagger(150),
+                    easing: 'easeOutExpo',
+                    duration: 700
+                }, '-=600'); // overlap
+        });
+    </script>
+</body>
+</html>

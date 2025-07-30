@@ -4,7 +4,7 @@
 
 **True-Source** is a sophisticated platform designed to help educators and institutions assess the originality of student assignments. The application performs comprehensive plagiarism checks by comparing submitted texts against a vast array of online sources and detecting both direct copying and paraphrasing. It also identifies AI-generated content, ensuring academic integrity and originality.
 
-![Dashboard](./templates/Screenshot_2025-07-30_221932.png)
+![image](https://github.com/senthilkumaran0411/plagiarism-ai-detector/blob/a33ecd0e1b75f9bfe60b43538d893bf17665432f/templates/Screenshot%202025-07-30%20221932.png)
 
 ## Key Features
 

@@ -230,16 +230,13 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
   ![Typing Animation](https://readme-typing-svg.demolab.com?font=Fira+Code&size=24&duration=2000&pause=500&color=22D3EE&width=500&lines=Thank+You+for+Using+True-Source!;Promoting+Academic+Integrity+📚)
   
   <br>
-  
   <img src="https://raw.githubusercontent.com/senthilkumaran0411/plagiarism-ai-detector/main/assets/true-source-logo.gif" width="150" alt="True-Source Logo">
-  
   <br><br>
-  
   **Contact Us:**
   
   📧 **Email:** [senthilkumaran0411@gmail.com](mailto:senthilkumaran0411@gmail.com)  
   💻 **GitHub:** [senthilkumaran0411](https://github.com/senthilkumaran0411)  
-  🔗 **LinkedIn:** [Connect with us](https://linkedin.com/in/senthilkumaran0411)
+
   
   <br>
   

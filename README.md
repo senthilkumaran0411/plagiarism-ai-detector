@@ -63,7 +63,7 @@ True-Source/
 
 2. **Navigate to project directory:**
    ```bash
-   cd True-Source
+   cd TrueDetectAI
    ```
 
 3. **Install dependencies:**
